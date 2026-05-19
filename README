@@ -1,0 +1,40 @@
+# CI/CD Pipeline mit Jenkins & Docker (Hello Florian API)
+
+Dieses Repository demonstriert die Einrichtung einer vollständigen CI/CD Pipeline mit Jenkins als DevOps-Werkzeug. Als Basis dient eine einfache Python (Flask) REST-API, die automatisiert getestet und bereitgestellt wird.
+
+## Erfüllung der Anforderungen (Bewertungskriterien 6.2)
+
+Folgende erweiterte Anforderungen wurden zur Gänze erfüllt:
+
+- [x] **Installation von Jenkins:** Jenkins wurde als Docker-Container auf dem lokalen System aufgesetzt.
+- [x] **Docker-Integration:** Es wurde ein Docker-out-of-Docker (DooD) Setup konfiguriert (Mounting von `/var/run/docker.sock`), damit Jenkins volle Kontrolle über den lokalen Docker-Daemon hat.
+- [x] **Einbinden des Git Repositories:** Dieses geforkte GitHub-Repository ist erfolgreich an Jenkins angebunden.
+- [x] **Applikation der eigenen Wahl:** Die ursprüngliche "Hello Spencer" Applikation wurde modifiziert und zu einer personalisierten **"Hello Florian"** API umgeschrieben.
+- [x] **Erstellung/Anpassung von Unit-Tests:** Passend zur modifizierten API wurden die Unit-Tests in `test_hello.py` und `test_api.py` umgeschrieben und erweitert, um die neuen Rückgabewerte auf Herz und Nieren zu prüfen.
+- [x] **Automatischer Pipeline-Start:** Ein **GitHub Webhook** (lokal angebunden über `ngrok`) wurde konfiguriert. Jeder `git push` auf den `main`-Branch triggert nun vollautomatisch einen neuen Pipeline-Durchlauf.
+- [x] **Lokales Deployment:** Die Applikation wird am Ende der Pipeline erfolgreich auf dem lokalen Notebook deployed.
+
+---
+
+## Pipeline Architektur & Stages
+
+Die CI/CD Pipeline wird durch das `Jenkinsfile` im Hauptverzeichnis gesteuert und läuft in einem isolierten `python:3.11` Docker-Container ab. Sie umfasst folgende automatisierte Schritte:
+
+1. **Pre-Build Cleanup:** Beendet eventuell noch laufende, alte Flask-Prozesse, um Port-Konflikte zu vermeiden.
+2. **Checkout:** Holt den aktuellsten Code vom `main`-Branch aus GitHub.
+3. **Build:** Installiert alle notwendigen Abhängigkeiten aus der `requirements.txt` (Flask, requests, pytest) über `pip`. Initialisiert zudem den Zähler (`count.txt`).
+4. **Test:** Führt die automatisierten Unit-Tests mit `pytest` aus (`test_hello.py`). Schlägt ein Test fehl, wird die Pipeline hier sofort gestoppt.
+5. **Run (Deployment):** Startet die Flask-Applikation auf dem Port `5556`. 
+6. **Test API:** Führt abschließende Integrationstests (`test_api.py`) gegen die nun laufende API durch, um Erreichbarkeit und korrekte JSON-Responses zu verifizieren.
+7. **Post-Actions:** Ein automatisches Cleanup, das nach dem Durchlauf aufräumt.
+
+---
+
+## Verwendete Technologien
+
+* **CI/CD:** Jenkins
+* **Containerisierung:** Docker
+* **Programmiersprache:** Python 3.11
+* **Web-Framework:** Flask
+* **Testing:** Pytest, Unittest
+* **Netzwerk:** ngrok (für Webhook-Routing an localhost)
